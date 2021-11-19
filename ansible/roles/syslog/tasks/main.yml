@@ -14,6 +14,11 @@
   notify:
     syslog-ng_reload
 
+- name: create samba share config directory
+  file:
+    path: /etc/samba/share.d/
+    state: directory
+
 - name: create samba config
   template:
     src: syslog.conf.j2

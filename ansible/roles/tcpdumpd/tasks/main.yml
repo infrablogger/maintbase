@@ -13,6 +13,11 @@
     dest: /usr/local/sbin/
     mode: 0755
 
+- name: mkdir /etc/tcpdumpd
+  file:
+    path: /etc/tcpdumpd/
+    state: directory
+
 - name: tcpdumpd.conf
   template:
     src: tcpdumpd.conf.j2
@@ -25,6 +30,11 @@
     daemon-reload: yes
     state: started
     enabled: yes
+
+- name: create samba share config directory
+  file:
+    path: /etc/samba/share.d/
+    state: directory
 
 - name: create samba config
   template:
