@@ -16,7 +16,7 @@
 - name: Create zabbix user, set MD5-hashed password, grant privs
   community.postgresql.postgresql_user:
     name: "{{ zabbix_db_user }}"
-    password: "{{ zabbix_db_password|hash('md5') }}"
+    password: "{{ zabbix_db_password }}"
   become: yes
   become_user: postgres
 
