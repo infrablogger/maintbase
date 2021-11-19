@@ -38,8 +38,9 @@
     msg: "table:history_exists: {{ table_history_exists.query_result[0].count}}"
 
 - name: install zabbix schema
-  shell: zcat /usr/share/doc/zabbix-sql-scripts/postgresql/create.sql.gz | PGPASSWORD={{zabbix_db_password}} sudo -u {{ zabbix_db_user }} psql {{ zabbix_db }}
+  shell: zcat /usr/share/doc/zabbix-sql-scripts/postgresql/create.sql.gz | PGPASSWORD={{zabbix_db_password}} psql {{ zabbix_db }}
   when: table_history_exists.query_result[0].count == 0
+  become_user: "{{ zabbix_db_user }}"
 
 - name: Configure the database for Zabbix server
   ansible.builtin.lineinfile:
