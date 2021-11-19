@@ -3,9 +3,9 @@
   become: true
   become_user: root
   roles:
-    # - postgresql
+    - postgresql
     - zabbix-server
-    # - tcpdumpd
-    # - syslog
-    # - samba
+    - tcpdumpd
+    - syslog
+    - samba
   
