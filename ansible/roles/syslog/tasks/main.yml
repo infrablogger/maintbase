@@ -1,0 +1,20 @@
+- name: syslog-ng installed
+  apt:
+    name: syslog-ng
+
+- name: rsyslog uninstalled
+  apt:
+    name: rsyslog
+    state: absent
+
+- name: remote logging config
+  template:
+    src: remote.conf.j2
+    dest: /etc/syslog-ng/conf.d/remote.conf
+  notify:
+    syslog-ng_reload
+
+- name: create samba config
+  template:
+    src: syslog.conf.j2
+    dest: /etc/samba/share.d/syslog.conf

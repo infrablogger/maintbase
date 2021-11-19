@@ -1,0 +1,33 @@
+- name: samba installed
+  apt:
+    name: samba
+
+- name: Linux User Setting for samba  
+  user:
+    name: "{{ smb_user }}"
+
+- name: Samba User List  
+  shell: pdbedit -L | awk -F":" '{print $1}'  
+  register: samba_user_list  
+
+- name: Add samba user  
+  shell: printf '{{ smb_password }}\n{{ smb_password }}\n' | pdbedit -t -a {{ smb_user }}
+  when: samba_user_list.stdout_lines.count( smb_user ) < 1
+
+- name: copy global config
+  copy:
+    src: smb.conf
+    dest: /etc/samba/smb.conf
+  notify: samba_reload
+
+- name: create share config directory
+  file:
+    path: /etc/samba/share.d/
+    state: directory
+    mode: '0755'
+
+- name: assemble smb.conf
+  assemble:
+    src: /etc/samba/share.d/
+    dest: /etc/samba/shares.conf
+  notify: samba_reload

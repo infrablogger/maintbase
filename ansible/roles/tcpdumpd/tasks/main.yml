@@ -1,0 +1,32 @@
+- name: tcpdump is installed
+  apt:
+    name: tcpdump
+
+- name: tcpdumpd.service
+  copy:
+    src: tcpdumpd.service
+    dest: /usr/lib/systemd/system/
+
+- name: tcpdumpd.sh
+  copy:
+    src: tcpdumpd.sh
+    dest: /usr/local/sbin/
+    mode: 0755
+
+- name: tcpdumpd.conf
+  template:
+    src: tcpdumpd.conf.j2
+    dest: /etc/tcpdumpd/tcpdumpd.conf
+  notify: tcpdumpd_restart
+
+- name: enable service
+  systemd:
+    name: tcpdumpd
+    daemon-reload: yes
+    state: started
+    enabled: yes
+
+- name: create samba config
+  template:
+    src: tcpdump.conf.j2
+    dest: /etc/samba/share.d/tcpdump.conf

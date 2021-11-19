@@ -1,0 +1,5 @@
+- name: syslog-ng_reload
+  systemd:
+    name: syslog-ng.service
+    state: reloaded
+    

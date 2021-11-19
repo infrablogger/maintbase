@@ -1,0 +1,17 @@
+source s_udp {
+    network(
+        transport("udp")
+    );
+};
+
+destination d_syslog_dir {
+    file(
+        "{{ syslog_dir }}/${SOURCEIP}/${FULLHOST}-${YEAR}${MONTH}${DAY}.log"
+        create_dirs(yes)
+    );
+}; 
+
+log { 
+    source(s_udp);
+    destination(d_syslog_dir);
+};

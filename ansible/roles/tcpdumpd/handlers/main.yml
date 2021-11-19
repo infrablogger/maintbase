@@ -1,0 +1,4 @@
+- name: tcpdumpd_restart
+  systemd:
+    name: tcpdumpd.service
+    state: restarted

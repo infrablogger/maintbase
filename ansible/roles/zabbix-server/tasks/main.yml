@@ -1,0 +1,73 @@
+- name: Zabbix repository added
+  apt:
+    deb: https://repo.zabbix.com/zabbix/5.4/debian/pool/main/z/zabbix-release/zabbix-release_5.4-1+debian11_all.deb
+
+- name: Zabbix server installed
+  apt:
+    name:
+      - zabbix-server-pgsql
+      - zabbix-frontend-php
+      - php7.4-pgsql
+      - zabbix-nginx-conf
+      - zabbix-sql-scripts
+      - zabbix-agent
+      - python3-psycopg2
+
+- name: Create zabbix user, set MD5-hashed password, grant privs
+  community.postgresql.postgresql_user:
+    name: "{{ zabbix_db_user }}"
+    password: "{{ zabbix_db_password|hash('md5') }}"
+  become: yes
+  become_user: postgres
+
+- name: Create initial database
+  community.postgresql.postgresql_db:
+    name: "{{ zabbix_db }}"
+    owner: "{{ zabbix_db_user }}"
+  become_user: postgres
+
+- name: check history talble exists
+  community.postgresql.postgresql_query:
+    db: zabbix
+    query: select count(*) from information_schema.tables where table_name = 'history';
+  register: table_history_exists
+  become_user: postgres
+
+- name: DEBUG history table exists
+  debug:
+    msg: "table:history_exists: {{ table_history_exists.query_result[0].count}}"
+
+- name: install zabbix schema
+  shell: zcat /usr/share/doc/zabbix-sql-scripts/postgresql/create.sql.gz | PGPASSWORD={{zabbix_db_password}} sudo -u {{ zabbix_db_user }} psql {{ zabbix_db }}
+  when: table_history_exists.query_result[0].count == 0
+
+- name: Configure the database for Zabbix server
+  ansible.builtin.lineinfile:
+    path: /etc/zabbix/zabbix_server.conf
+    regexp: '^DBPassword='
+    line: DBPassword={{ zabbix_db_password }}
+
+- name: Start Zabbix server processes
+  systemd:
+    name: zabbix-server
+    enabled: yes
+    state: started
+
+- name: Start Zabbix agent processes
+  systemd:
+    name: zabbix-agent
+    enabled: yes
+    state: started
+
+- name: Start nginx processes
+  systemd:
+    name: nginx
+    enabled: yes
+    state: started
+
+- name: Start php fpm processes
+  systemd:
+    name: php7.4-fpm
+    enabled: yes
+    state: started
+

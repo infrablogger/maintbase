@@ -1,0 +1,8 @@
+- name: PostgreSQL installed
+  apt:
+    name: postgresql-13
+
+- name: PostgreSQL started
+  systemd:
+    name: postgresql.service
+    state: started

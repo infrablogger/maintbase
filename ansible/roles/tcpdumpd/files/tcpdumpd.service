@@ -1,0 +1,11 @@
+[Unit]
+After=network.target
+ 
+[Service]
+Restart=always
+RestartSec=30
+ExecStart=/usr/bin/bash /usr/local/sbin/tcpdumpd.sh
+ExecStop=/bin/kill -s QUIT $MAINPID
+ 
+[Install]
+WantedBy=multi-user.target

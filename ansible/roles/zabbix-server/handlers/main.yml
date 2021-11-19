@@ -1,0 +1,4 @@
+- name: samba_reload
+  systemd:
+    name: smbd.service
+    state: reloaded
