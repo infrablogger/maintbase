@@ -1,0 +1,9 @@
+- name: check system locale
+  command: localectl status
+  register: localectl_result
+  check_mode: no
+  changed_when: false
+
+- name: change system locale to C.UTF-8
+  command: localectl set-locale LANG=C.UTF-8
+  when: "'LANG=C.UTF-8' not in localectl_result.stdout"
