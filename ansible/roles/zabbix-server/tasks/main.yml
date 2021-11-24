@@ -12,7 +12,11 @@
       - zabbix-sql-scripts
       - zabbix-agent
       - python3-psycopg2
+      - fonts-ipaexfont
     update_cache: yes
+
+- name: set font to ipaex-gothic
+  command: update-alternatives --install /usr/share/zabbix/assets/fonts/graphfont.ttf zabbix-frontend-font /usr/share/fonts/truetype/fonts-japanese-gothic.ttf 20
 
 - name: Create zabbix user, set MD5-hashed password, grant privs
   community.postgresql.postgresql_user:
@@ -25,6 +29,7 @@
   community.postgresql.postgresql_db:
     name: "{{ zabbix_db }}"
     owner: "{{ zabbix_db_user }}"
+    encoding: "UTF-8"
   become_user: postgres
 
 - name: check history talble exists
@@ -60,6 +65,12 @@
     name: zabbix-agent
     enabled: yes
     state: started
+
+- name: nginx disable default site
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: nginx-restart
 
 - name: Start nginx processes
   systemd:

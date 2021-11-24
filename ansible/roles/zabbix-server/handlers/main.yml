@@ -2,3 +2,8 @@
   systemd:
     name: smbd.service
     state: reloaded
+
+- name: nginx-restart
+  systemd:
+    name: nginx.service
+    state: restarted
