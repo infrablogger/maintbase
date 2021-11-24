@@ -23,5 +23,5 @@
 
 初期セットアップ
 ```
-# ansible-playbook setup.yml -u root
+# ansible-playbook setup.yml
 ```
