@@ -7,3 +7,9 @@
 - name: change system locale to C.UTF-8
   command: localectl set-locale LANG=C.UTF-8
   when: "'LANG=C.UTF-8' not in localectl_result.stdout"
+
+- name: disable apparmor
+  systemd:
+    name: apparmor.service
+    enabled: no
+    state: stopped
