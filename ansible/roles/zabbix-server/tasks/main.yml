@@ -1,4 +1,8 @@
-- name: Zabbix server installed
+#
+# パッケージインストール
+#
+
+- name: install packages
   apt:
     name:
       - zabbix-server-mysql
@@ -8,10 +12,11 @@
       - fonts-ipaexfont
       - python3-pymysql
 
-- name: set font to ipaex-gothic
-  command: update-alternatives --install /usr/share/zabbix/assets/fonts/graphfont.ttf zabbix-frontend-font /usr/share/fonts/truetype/fonts-japanese-gothic.ttf 20
+#
+# データベース
+#
 
-- name: rootユーザのパスワード設定
+- name: set DB master password
   community.mysql.mysql_user:
     login_unix_socket: /var/run/mysqld/mysqld.sock
     login_user: "{{ db_admin_user }}"
@@ -21,7 +26,7 @@
     check_implicit_admin: yes
     state: present
 
-- name: 匿名ユーザ削除
+- name: remove DB anonymous user
   community.mysql.mysql_user:
     login_user: "{{ db_admin_user }}"
     login_password: "{{ db_admin_password }}"
@@ -29,25 +34,30 @@
     host_all: yes
     state: absent
 
-- name: DB innodb per table
-  lineinfile:
-    dest: /etc/mysql/mariadb.conf.d/50-server.cnf
-    insertafter: '\[mysqld\]'
-    line: 'innodb_file_per_table'
+- name: DB config file
+  copy:
+    src: 90-zabbix.conf
+    dest: /etc/mysql/mariadb.conf.d/90-server.conf
 
-- name: DB MySQL接続時の文字コードセット
-  lineinfile:
-    path: /etc/mysql/mariadb.conf.d/50-server.cnf
-    insertafter: '\[mysqld\]'
-    regex: 'default-character-set.*=.*'
-    line: 'default-character-set=utf8'
+# - name: DB innodb per table
+#   lineinfile:
+#     dest: /etc/mysql/mariadb.conf.d/50-server.cnf
+#     insertafter: '\[mysqld\]'
+#     line: 'innodb_file_per_table'
 
-- name: DB サーバ起動時の文字コードセット
-  lineinfile:
-    dest: /etc/mysql/mariadb.conf.d/50-server.cnf
-    insertafter: '\[mysqld\]'
-    regex: 'character-set-server.*=.*'
-    line: "character-set-server=utf8"
+# - name: DB MySQL接続時の文字コードセット
+#   lineinfile:
+#     path: /etc/mysql/mariadb.conf.d/50-server.cnf
+#     insertafter: '\[mysqld\]'
+#     regex: 'default-character-set.*=.*'
+#     line: 'default-character-set=utf8'
+
+# - name: DB サーバ起動時の文字コードセット
+#   lineinfile:
+#     dest: /etc/mysql/mariadb.conf.d/50-server.cnf
+#     insertafter: '\[mysqld\]'
+#     regex: 'character-set-server.*=.*'
+#     line: "character-set-server=utf8"
 
 - name: Create initial database
   community.mysql.mysql_db:
@@ -58,7 +68,7 @@
     encoding: utf8
     collation: utf8_bin
 
-- name: create db user
+- name: create DB user
   community.mysql.mysql_user:
     login_user: "{{ db_admin_user }}"
     login_password: "{{ db_admin_password }}"
@@ -75,9 +85,9 @@
     query: select * from information_schema.tables where table_name = 'history';
   register: table_history_exists
 
-- name: DEBUG history table exists
-  debug:
-    msg: "table:history_exists: {{ table_history_exists.rowcount[0]}}"
+# - name: DEBUG history table exists
+#   debug:
+#     msg: "table:history_exists: {{ table_history_exists.rowcount[0]}}"
 
 - name: install zabbix schema
   shell: zcat /usr/share/zabbix-server-mysql/{{ item }} | mysql -u{{zabbix_db_user}} -p{{zabbix_db_password}} {{ zabbix_db }}
@@ -88,23 +98,44 @@
     - data.sql.gz
     - double.sql.gz
 
+#
+# サーバー
+#
+
 - name: Configure the database for Zabbix server
   ansible.builtin.lineinfile:
     path: /etc/zabbix/zabbix_server.conf
     regexp: '^DBPassword='
     line: DBPassword={{ zabbix_db_password }}
 
-- name: Start Zabbix server processes
+- name: Start server processes
   systemd:
     name: zabbix-server 
     enabled: yes
     state: started
 
-- name: Start Zabbix agent processes
+#
+# エージェント
+#
+
+- name: Start agent processes
   systemd:
     name: zabbix-agent
     enabled: yes
     state: started
+
+#
+# フロントエンド
+#
+
+- name: set font to ipaex-gothic
+  command: update-alternatives --install /usr/share/zabbix/assets/fonts/graphfont.ttf zabbix-frontend-font /usr/share/fonts/truetype/fonts-japanese-gothic.ttf 20
+
+- name: set graph font
+  lineinfile:
+    path: /usr/share/zabbix/include/defines.inc.php
+    regex: 'ZBX_GRAPH_FONT_NAME'
+    line: "define('ZBX_GRAPH_FONT_NAME','graphfont');"
 
 - name: 
   lineinfile:
