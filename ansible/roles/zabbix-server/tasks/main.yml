@@ -1,52 +1,92 @@
-- name: Zabbix repository added
-  apt:
-    deb: https://repo.zabbix.com/zabbix/5.4/debian/pool/main/z/zabbix-release/zabbix-release_5.4-1+debian11_all.deb
-
 - name: Zabbix server installed
   apt:
     name:
-      - zabbix-server-pgsql
+      - zabbix-server-mysql
+      - php7.4-mysql
       - zabbix-frontend-php
-      - php7.4-pgsql
-      - zabbix-nginx-conf
-      - zabbix-sql-scripts
       - zabbix-agent
-      - python3-psycopg2
       - fonts-ipaexfont
-    update_cache: yes
+      - python3-pymysql
 
 - name: set font to ipaex-gothic
   command: update-alternatives --install /usr/share/zabbix/assets/fonts/graphfont.ttf zabbix-frontend-font /usr/share/fonts/truetype/fonts-japanese-gothic.ttf 20
 
-- name: Create zabbix user, set MD5-hashed password, grant privs
-  community.postgresql.postgresql_user:
-    name: "{{ zabbix_db_user }}"
-    password: "{{ zabbix_db_password }}"
-  become: yes
-  become_user: postgres
+- name: rootユーザのパスワード設定
+  community.mysql.mysql_user:
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    login_user: "{{ db_admin_user }}"
+    login_password: "{{ db_admin_password }}"
+    name: "{{ db_admin_user }}"
+    password: "{{ db_admin_password }}"
+    check_implicit_admin: yes
+    state: present
+
+- name: 匿名ユーザ削除
+  community.mysql.mysql_user:
+    login_user: "{{ db_admin_user }}"
+    login_password: "{{ db_admin_password }}"
+    name: ''
+    host_all: yes
+    state: absent
+
+- name: DB innodb per table
+  lineinfile:
+    dest: /etc/mysql/mariadb.conf.d/50-server.cnf
+    insertafter: '\[mysqld\]'
+    line: 'innodb_file_per_table'
+
+- name: DB MySQL接続時の文字コードセット
+  lineinfile:
+    path: /etc/mysql/mariadb.conf.d/50-server.cnf
+    insertafter: '\[mysqld\]'
+    regex: 'default-character-set.*=.*'
+    line: 'default-character-set=utf8'
+
+- name: DB サーバ起動時の文字コードセット
+  lineinfile:
+    dest: /etc/mysql/mariadb.conf.d/50-server.cnf
+    insertafter: '\[mysqld\]'
+    regex: 'character-set-server.*=.*'
+    line: "character-set-server=utf8"
 
 - name: Create initial database
-  community.postgresql.postgresql_db:
+  community.mysql.mysql_db:
+    login_user: "{{ db_admin_user }}"
+    login_password: "{{ db_admin_password }}"
     name: "{{ zabbix_db }}"
-    owner: "{{ zabbix_db_user }}"
-    encoding: "UTF-8"
-  become_user: postgres
+    state: present
+    encoding: utf8
+    collation: utf8_bin
+
+- name: create db user
+  community.mysql.mysql_user:
+    login_user: "{{ db_admin_user }}"
+    login_password: "{{ db_admin_password }}"
+    name: "{{ zabbix_db_user }}"
+    password: "{{ zabbix_db_password }}"
+    priv:
+      "{{ zabbix_db }}.*:ALL,GRANT"
 
 - name: check history talble exists
-  community.postgresql.postgresql_query:
-    db: zabbix
-    query: select count(*) from information_schema.tables where table_name = 'history';
+  community.mysql.mysql_query:
+    login_user: "{{ zabbix_db_user }}"
+    login_password: "{{ zabbix_db_password }}"
+    login_db: "{{ zabbix_db }}"
+    query: select * from information_schema.tables where table_name = 'history';
   register: table_history_exists
-  become_user: postgres
 
 - name: DEBUG history table exists
   debug:
-    msg: "table:history_exists: {{ table_history_exists.query_result[0].count}}"
+    msg: "table:history_exists: {{ table_history_exists.rowcount[0]}}"
 
 - name: install zabbix schema
-  shell: zcat /usr/share/doc/zabbix-sql-scripts/postgresql/create.sql.gz | PGPASSWORD={{zabbix_db_password}} psql {{ zabbix_db }}
-  when: table_history_exists.query_result[0].count == 0
-  become_user: "{{ zabbix_db_user }}"
+  shell: zcat /usr/share/zabbix-server-mysql/{{ item }} | mysql -u{{zabbix_db_user}} -p{{zabbix_db_password}} {{ zabbix_db }}
+  when: table_history_exists.rowcount[0] == 0
+  with_items:
+    - schema.sql.gz
+    - images.sql.gz
+    - data.sql.gz
+    - double.sql.gz
 
 - name: Configure the database for Zabbix server
   ansible.builtin.lineinfile:
@@ -56,7 +96,7 @@
 
 - name: Start Zabbix server processes
   systemd:
-    name: zabbix-server
+    name: zabbix-server 
     enabled: yes
     state: started
 
@@ -66,21 +106,26 @@
     enabled: yes
     state: started
 
-- name: nginx disable default site
-  file:
-    path: /etc/nginx/sites-enabled/default
-    state: absent
-  notify: nginx-restart
+- name: 
+  lineinfile:
+    path: /etc/apache2/conf-available/zabbix-frontend-php.conf
+    insertafter: '\<IfModule mod_php7.c\>'
+    line: 'php_value date.timezone Asia/Tokyo'
+  notify: apache2-reload
 
-- name: Start nginx processes
-  systemd:
-    name: nginx
-    enabled: yes
-    state: started
+- name: check zabbix-forntend-php.conf exists
+  stat:
+    path: /etc/apache2/conf-enabled/zabbix-frontend-php.conf
+  register: zabbix_conf
 
-- name: Start php fpm processes
-  systemd:
-    name: php7.4-fpm
-    enabled: yes
-    state: started
+- name: Enabling zabbix-frontend-php conf
+  command: a2enconf zabbix-frontend-php
+  when: not zabbix_conf.stat.exists
+  notify: apache2-reload
+
+- name: place zabbix.conf.php
+  template:
+    src: zabbix.conf.php.j2
+    dest: /etc/zabbix/zabbix.conf.php
+
 

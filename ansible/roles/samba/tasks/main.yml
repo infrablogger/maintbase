@@ -9,6 +9,7 @@
 - name: Samba User List  
   shell: pdbedit -L | awk -F":" '{print $1}'  
   register: samba_user_list  
+  changed_when: no
 
 - name: Add samba user  
   shell: printf "{{ smb_password }}\n{{ smb_password }}\n" | pdbedit -t -a {{ smb_user }}
@@ -18,10 +19,4 @@
   copy:
     src: smb.conf
     dest: /etc/samba/smb.conf
-  notify: samba_reload
-
-- name: assemble smb.conf
-  assemble:
-    src: /etc/samba/share.d/
-    dest: /etc/samba/shares.conf
   notify: samba_reload

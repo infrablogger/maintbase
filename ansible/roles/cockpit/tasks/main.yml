@@ -1,0 +1,8 @@
+- name: cockpit installed
+  apt:
+    name: cockpit
+
+- name: cockpit started
+  systemd:
+    name: cockpit.service
+    state: started

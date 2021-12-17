@@ -2,16 +2,16 @@
   apt:
     name: tcpdump
 
-- name: tcpdumpd.service
+- name: place files
   copy:
-    src: tcpdumpd.service
-    dest: /usr/lib/systemd/system/
-
-- name: tcpdumpd.sh
-  copy:
-    src: tcpdumpd.sh
-    dest: /usr/local/sbin/
-    mode: 0755
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "{{ item.mode }}"
+  with_items:
+    - {"src": tcpdumpd.service, "dest":/usr/lib/systemd/system/, "mode":"0644"}
+    - {"src": tcpdumpd-watcher.service, "dest":/usr/lib/systemd/system/, "mode":"0644"}
+    - {"src": tcpdumpd-watcher.path, "dest":/usr/lib/systemd/system/, "mode":"0644"}
+    - {"src": tcpdumpd.sh, "dest":/usr/local/sbin/, "mode":"0755"}
 
 - name: mkdir /etc/tcpdumpd
   file:
@@ -24,19 +24,27 @@
     dest: /etc/tcpdumpd/tcpdumpd.conf
   notify: tcpdumpd_restart
 
-- name: enable service
+- name: enable services
   systemd:
-    name: tcpdumpd
+    name: "{{ item }}"
     daemon-reload: yes
     state: started
     enabled: yes
+  with_items:
+    - tcpdumpd
+    - tcpdumpd-watcher.path
 
-- name: create samba share config directory
-  file:
-    path: /etc/samba/share.d/
-    state: directory
+- name: add samba share data
+  import_role:
+    name: add_samba_share
+  vars:
+    share_name: tcpdump
+    share_path: /var/log/tcpdump
 
-- name: create samba config
-  template:
-    src: tcpdump.conf.j2
-    dest: /etc/samba/share.d/tcpdump.conf
+- name: add samba share etc
+  import_role:
+    name: add_samba_share
+  vars:
+    share_name: etc_tcpdumpd
+    share_path: /etc/tcpdumpd/
+  

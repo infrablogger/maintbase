@@ -1,0 +1,17 @@
+---
+- name: check samba share
+  shell: net conf listshares | grep {{ share_name }} | wc -l
+  register: share
+  changed_when: no
+
+- name: debug samba share
+  debug:
+    msg: "share: {{ share }}"
+  changed_when: no
+
+- name: craete samba share
+  command: "{{ item }}"
+  with_items:
+    - "net conf addshare {{ share_name }} {{ share_path }} writeable=y"
+    - "net conf setparm {{ share_name }} 'admin users' user"
+  when: share.stdout == "0"  

@@ -22,4 +22,4 @@ done
 
 mkdir -p ${PCAP_DIR}
 chown -R tcpdump:tcpdump ${PCAP_DIR}
-/usr/bin/tcpdump -n -i br0 -s 0 -G ${DURATION} -w ${PCAP_DIR}/tcpdump-%Y%m%d-%H%M.pcap ${TCPDUMP_OPTS} ${FILTER}
+/usr/bin/tcpdump -n -s 0 -G ${DURATION} -w ${PCAP_DIR}/tcpdump-%Y%m%d-%H%M.pcap ${TCPDUMP_OPTS} ${FILTER}

@@ -1,0 +1,10 @@
+[Unit]
+Description=tcpdumpd restarter
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/systemctl restart tcpdumpd.service
+
+[Install]
+WantedBy=multi-user.target

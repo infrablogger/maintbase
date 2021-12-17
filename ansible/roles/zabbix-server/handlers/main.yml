@@ -3,7 +3,7 @@
     name: smbd.service
     state: reloaded
 
-- name: nginx-restart
+- name: apache2-reload
   systemd:
-    name: nginx.service
-    state: restarted
+    name: apache2.service
+    state: reloaded
