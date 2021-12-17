@@ -1,12 +1,12 @@
-- name: samba installed
+- name: install packages
   apt:
     name: samba
 
-- name: Linux User Setting for samba  
+- name: add Linux User Setting for samba  
   user:
     name: "{{ smb_user }}"
 
-- name: Samba User List  
+- name: get user list 
   shell: pdbedit -L | awk -F":" '{print $1}'  
   register: samba_user_list  
   changed_when: no

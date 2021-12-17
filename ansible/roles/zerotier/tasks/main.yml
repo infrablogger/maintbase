@@ -1,4 +1,4 @@
-- name: required packages installed
+- name: install required packages
   apt:
     name:
       - curl

@@ -1,8 +1,8 @@
-- name: mariadb installed
+- name: install
   apt:
     name: mariadb-server-10.5
 
-- name: mariadb started
+- name: start service
   systemd:
     name: mariadb.service
     state: started

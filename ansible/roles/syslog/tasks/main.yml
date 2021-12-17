@@ -1,8 +1,8 @@
-- name: syslog-ng installed
+- name: install packages
   apt:
     name: syslog-ng
 
-- name: rsyslog uninstalled
+- name: uninstall rsyslog
   apt:
     name: rsyslog
     state: absent
@@ -14,7 +14,7 @@
   notify:
     syslog-ng_reload
 
-- name: add samba share data
+- name: add samba share
   import_role:
     name: add_samba_share
   vars:
