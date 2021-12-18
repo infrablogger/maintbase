@@ -1,2 +1,2 @@
 ansible/host_vars/**
-ansible/inventory/
+ansible/inventory/**
