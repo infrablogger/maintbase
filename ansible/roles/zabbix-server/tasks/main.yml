@@ -38,6 +38,7 @@
   copy:
     src: 90-zabbix.conf
     dest: /etc/mysql/mariadb.conf.d/90-server.conf
+  notify: mariadb-restart
 
 # - name: DB innodb per table
 #   lineinfile:
@@ -97,6 +98,20 @@
     - images.sql.gz
     - data.sql.gz
     - double.sql.gz
+
+# http://bestmonitoringtools.com/dl/zbx_db_partitiong.tar.gz
+- name: place partitioning script
+  copy:
+    src: zbx_db_partitioning.sql
+    dest: /tmp/zbx_db_partitioning.sql
+
+- name: DB partitioning
+  shell: cat /tmp/zbx_db_partitioning.sql | mysql -u{{zabbix_db_user}} -p{{zabbix_db_password}} {{ zabbix_db }}
+  when: table_history_exists.rowcount[0] == 0
+
+- name: DB schedule partitioner
+  shell: mysql -u{{zabbix_db_user}} -p{{zabbix_db_password}} {{ zabbix_db }} -e "CREATE EVENT zbx_partitioning ON SCHEDULE EVERY 12 HOUR DO CALL partition_maintenance_all('{{ zabbix_db }}');"
+  when: table_history_exists.rowcount[0] == 0
 
 #
 # サーバー

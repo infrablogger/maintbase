@@ -7,3 +7,8 @@
   systemd:
     name: apache2.service
     state: reloaded
+
+- name: mariadb-restart
+  systemd:
+    name: mariadb.service
+    state: restarted
