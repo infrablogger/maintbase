@@ -9,3 +9,4 @@
     - syslog
     - zabbix-server
     - cockpit
+    - apache-proxy

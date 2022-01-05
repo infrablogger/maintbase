@@ -1,0 +1,23 @@
+- name: place proxy config file
+  copy:
+    src: proxy.conf
+    dest: /etc/apache2/conf-available/proxy.conf
+  notify:
+    restart_apache
+
+- name: enable proxy config
+  shell: a2enconf proxy.conf
+  register: rc
+  changed_when: false
+
+- name: enable proxy modules
+  apache2_module:
+    state: present
+    name: "{{ item }}"
+  with_items:
+  - proxy_http
+  - proxy_connect
+  notify:
+    restart_apache
+
+
