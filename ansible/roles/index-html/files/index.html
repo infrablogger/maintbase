@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang=ja>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Buffalo Remote Support Kit</title>
+</head>
+
+<body>
+    <ol>
+        <li><a id="cockpit">Cockpit（設定変更）</a></li>
+        <li><a id="zabbix">Zabbix（監視サーバー）</a></li>
+    </ol>
+    <script language="javascript" type="text/javascript">
+        a1 = document.getElementById('cockpit');
+        a1.href = cockpit_url = "https://" + location.hostname + ":9090";
+
+        a2 = document.getElementById('zabbix');
+        a2.href = "http://" + location.hostname + "/zabbix/";
+    </script>
+</body>
+<hhtml>

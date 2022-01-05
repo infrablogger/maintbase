@@ -10,3 +10,4 @@
     - zabbix-server
     - cockpit
     - apache-proxy
+    - index-html
