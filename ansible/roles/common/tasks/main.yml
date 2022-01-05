@@ -1,12 +1,12 @@
-# - name: check system locale
-#   command: localectl status
-#   register: localectl_result
-#   check_mode: no
-#   changed_when: false
+- name: check system locale
+  command: localectl status
+  register: localectl_result
+  check_mode: no
+  changed_when: false
 
-# - name: change system locale to C.UTF-8
-#   command: localectl set-locale LANG=C.UTF-8
-#   when: "'LANG=C.UTF-8' not in localectl_result.stdout"
+- name: change system locale to C.UTF-8
+  command: localectl set-locale LANG=C.UTF-8
+  when: "'LANG=C.UTF-8' not in localectl_result.stdout"
 
 - name: disable apparmor
   systemd:
@@ -15,7 +15,17 @@
     state: stopped
 
 - name: Upgrade all packages
-  become: yes
   apt:
     update_cache: yes
     upgrade: full
+
+- name: set hostname
+  ansible.builtin.hostname:
+    name: "{{ inventory_hostname }}"
+    use: systemd
+
+- name: set hostname in hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '^127.0.1.1'
+    line: 127.0.1.1 {{ inventory_hostname }}
