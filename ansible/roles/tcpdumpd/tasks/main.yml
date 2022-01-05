@@ -36,10 +36,10 @@
     share_name: tcpdump
     share_path: /var/log/tcpdump
 
-- name: add samba share for config
-  import_role:
-    name: add_samba_share
-  vars:
-    share_name: etc_tcpdumpd
-    share_path: /etc/tcpdumpd/
+# - name: add samba share for config
+#   import_role:
+#     name: add_samba_share
+#   vars:
+#     share_name: etc_tcpdumpd
+#     share_path: /etc/tcpdumpd/
   
