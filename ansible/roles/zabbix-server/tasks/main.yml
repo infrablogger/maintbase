@@ -16,6 +16,26 @@
 # データベース
 #
 
+
+- name: DB settings
+  lineinfile:
+    dest: /etc/mysql/mariadb.conf.d/50-server.cnf
+    insertafter: '\[mysqld\]'
+    regex: "{{ item.regex }}"
+    line: "{{ item.line }}"
+  with_items:
+    - {regex: innodb_file_per_table, line: innodb_file_per_table}
+    - {regex: character-set-server, line: character-set-server=utf8}
+    - {regex: collation-server, line: collation-server=utf8_bin}
+    - {regex: event_scheduler, line: event_scheduler = ON}
+  register: rc
+
+- name: when changed restart DB server
+  systemd:
+    name: mysql
+    state: restarted
+  when: rc.changed
+
 - name: set DB master password
   community.mysql.mysql_user:
     login_unix_socket: /var/run/mysqld/mysqld.sock
@@ -34,31 +54,6 @@
     host_all: yes
     state: absent
 
-- name: DB config file
-  copy:
-    src: 90-zabbix.conf
-    dest: /etc/mysql/mariadb.conf.d/90-server.conf
-  notify: mariadb-restart
-
-# - name: DB innodb per table
-#   lineinfile:
-#     dest: /etc/mysql/mariadb.conf.d/50-server.cnf
-#     insertafter: '\[mysqld\]'
-#     line: 'innodb_file_per_table'
-
-# - name: DB MySQL接続時の文字コードセット
-#   lineinfile:
-#     path: /etc/mysql/mariadb.conf.d/50-server.cnf
-#     insertafter: '\[mysqld\]'
-#     regex: 'default-character-set.*=.*'
-#     line: 'default-character-set=utf8'
-
-# - name: DB サーバ起動時の文字コードセット
-#   lineinfile:
-#     dest: /etc/mysql/mariadb.conf.d/50-server.cnf
-#     insertafter: '\[mysqld\]'
-#     regex: 'character-set-server.*=.*'
-#     line: "character-set-server=utf8"
 
 - name: Create initial database
   community.mysql.mysql_db:
