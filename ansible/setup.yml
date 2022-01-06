@@ -4,6 +4,7 @@
   become: yes
   roles:
     - common
+    - TS5000
     - zerotier
     - tcpdumpd
     - syslog
@@ -11,3 +12,4 @@
     - cockpit
     - apache-proxy
     - index-html
+
