@@ -18,5 +18,6 @@
 - name: enable proxy config
   shell: a2enconf proxy.conf
   changed_when: '"systemctl" not in result.stdout'
+  register: result
   notify:
     restart_apache
