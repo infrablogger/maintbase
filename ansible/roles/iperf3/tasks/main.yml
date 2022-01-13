@@ -1,0 +1,16 @@
+- name: install packages
+  apt:
+    name: iperf3
+
+- name: place files
+  copy:
+    src: "iperf3.service"
+    dest: "/usr/lib/systemd/system/iperf3.service"
+    mode: "0644"
+
+- name: starte service
+  systemd:
+    daemon-reload: yes
+    name: iperf3.service
+    enabled: yes
+    state: started

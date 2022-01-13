@@ -8,6 +8,7 @@
     - zerotier
     - tcpdumpd
     - syslog
+    - iperf
     - zabbix-server
     - cockpit
     - apache-proxy
