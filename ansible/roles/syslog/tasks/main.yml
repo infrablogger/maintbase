@@ -1,6 +1,6 @@
 - name: install packages
   apt:
-    name: syslog-ng
+    name: ['syslog-ng', 'pigz']
 
 - name: uninstall rsyslog
   apt:
@@ -14,9 +14,20 @@
   notify:
     syslog-ng_reload
 
+- name: place rotate script
+  copy:
+    src: syslog-rotate.sh
+    dest: /usr/local/sbin/syslog-rotate.sh
+    mode: '0755'
+
+- name: place cron script
+  copy:
+    src: syslog-rotate.cron
+    dest: /etc/cron.d/syslog-rotate
+
 - name: add samba share
   import_role:
     name: add_samba_share
   vars:
-    share_name: remote
+    share_name: syslog
     share_path: /var/log/remote
