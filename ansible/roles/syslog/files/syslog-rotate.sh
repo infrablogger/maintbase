@@ -8,4 +8,4 @@ if [ ! -d /var/log/remote/ ]; then
 fi
 
 find /var/log/remote/ -daystart -mtime +${KEEP_DAYS} -type f -exec rm {} \;
-find /var/log/remote/ \( -not -name '*.gz' \) -daystart -mtime +1 -type f -exec pigz {} \;
+find /var/log/remote/ \( -not -name '*.gz' \) -daystart -mtime +0 -type f -exec pigz {} \;
