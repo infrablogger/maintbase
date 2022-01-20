@@ -10,6 +10,7 @@
     <ol>
         <li><a id="cockpit">Cockpit（設定変更）</a></li>
         <li><a id="zabbix">Zabbix（監視サーバー）</a></li>
+        <li><a id="guacamole">リモートデスクトップ接続</a></li>
     </ol>
     <script language="javascript" type="text/javascript">
         a1 = document.getElementById('cockpit');
@@ -17,6 +18,10 @@
 
         a2 = document.getElementById('zabbix');
         a2.href = "http://" + location.hostname + "/zabbix/";
+
+        a2 = document.getElementById('guacamole');
+        a2.href = "http://" + location.hostname + ":8080/guacamole/";
+
     </script>
 </body>
 <hhtml>

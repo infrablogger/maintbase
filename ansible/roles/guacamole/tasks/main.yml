@@ -1,0 +1,52 @@
+- name: place etc files
+  unarchive:
+    src: guacamole-etc.tar.gz
+    dest: /etc/
+
+- name: place guacamole.properties
+  template:
+    src: guacamole.properties.j2
+    dest: /etc/guacamole/guacamole.properties
+
+#
+# データベース
+#
+- name: Create initial database
+  community.mysql.mysql_db:
+    login_user: "{{ db_admin_user }}"
+    login_password: "{{ db_admin_password }}"
+    name: "{{ guacamole_db }}"
+    state: present
+
+- name: create DB user
+  community.mysql.mysql_user:
+    login_user: "{{ db_admin_user }}"
+    login_password: "{{ db_admin_password }}"
+    name: "{{ guacamole_user }}"
+    password: "{{ guacamole_password }}"
+    priv:
+      "{{ guacamole_db }}.*:ALL,GRANT"
+
+- name: check  talble exists
+  community.mysql.mysql_query:
+    login_user: "{{ guacamole_user }}"
+    login_password: "{{ guacamole_password }}"
+    login_db: "{{ guacamole_db }}"
+    query: select * from information_schema.tables where table_name = 'guacamole_user';
+  register: table_exists
+
+- name: install schema
+  shell: cat /etc/guacamole/schema/*.sql | mysql -u{{guacamole_user}} -p{{guacamole_password}} {{ guacamole_db }}
+  when: table_exists.rowcount[0] == 0
+
+- name: install packages
+  apt:
+    name: 
+    - guacd
+    - tomcat9
+
+- name: place tomcat files
+  copy:
+    src: guacamole-1.3.0.war
+    dest: /var/lib/tomcat9/webapps/guacamole.war
+
