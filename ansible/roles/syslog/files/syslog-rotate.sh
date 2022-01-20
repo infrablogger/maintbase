@@ -1,6 +1,6 @@
 #!/bin/bash
 
-KEEP_DAYS=14
+KEEP_DAYS=${KEEP_DAYS:-14}
 
 if [ ! -d /var/log/remote/ ]; then
     echo "/var/log/remote/ does not exist"

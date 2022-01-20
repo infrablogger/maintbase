@@ -14,16 +14,22 @@
   notify:
     syslog-ng_reload
 
-- name: place rotate script
-  copy:
-    src: syslog-rotate.sh
-    dest: /usr/local/sbin/syslog-rotate.sh
-    mode: '0755'
+- name: create conf dir
+  ansible.builtin.file:
+    path: /etc/syslog-rotate/
+    state: directory
+    mode: '0755'  
 
-- name: place cron script
+- name: place files
   copy:
-    src: syslog-rotate.cron
-    dest: /etc/cron.d/syslog-rotate
+    src: "{{item.src}}"
+    dest: "{{item.dest}}"
+    mode: "{{item.mode}}"
+    directory_mode: "0755"
+  with_items:
+    - {"src":"syslog-rotate.sh", "dest":"/usr/local/sbin/syslog-rotate.sh","mode":"0755" }
+    - {"src":"syslog-rotate.cron", "dest":"/etc/cron.d/syslog-rotate","mode":"0644" }
+    - {"src":"syslog-rotate.conf", "dest":"/etc/syslog-rotate/syslog-rotate.sh","mode":"0644" }
 
 - name: add samba share
   import_role:
