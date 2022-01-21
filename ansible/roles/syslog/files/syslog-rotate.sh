@@ -1,5 +1,6 @@
 #!/bin/bash
 
+source /etc/syslog-rotate/syslog-rotate.conf
 KEEP_DAYS=${KEEP_DAYS:-14}
 
 if [ ! -d /var/log/remote/ ]; then
