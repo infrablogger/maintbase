@@ -50,3 +50,15 @@
     src: guacamole-1.3.0.war
     dest: /var/lib/tomcat9/webapps/guacamole.war
 
+- name: add drive mapping folder
+  file:
+    path: /var/guacamole
+    state: directory
+    mode: '0755'
+
+- name: add samba share 
+  import_role:
+    name: add_samba_share
+  vars:
+    share_name: guacamole
+    share_path: /var/guacamole

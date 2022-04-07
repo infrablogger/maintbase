@@ -12,5 +12,6 @@
     - zabbix-server
     - cockpit
     - apache-proxy
+    - guacamole
     - index-html
 
